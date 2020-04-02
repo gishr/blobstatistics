@@ -1,15 +1,8 @@
-////////////////////////////////////////////////////////////////
-// Skeleton program for TRC3500
-// Grabs images from a USB camera using OpenCV
-// Written by Andy Russell 09th February 2006
-// Modified by Michael Curtis 2011-2012 - updated for newer OpenCV
-/////////////////////////////////////////////////////////////////
-
 #include "cv.h"
 #include "highgui.h"
 #include <iostream>
 #include <stdio.h>
-//#include "opencv2/opencv.hpp"
+#include "opencv2/opencv.hpp"
 
 using namespace std;
 using namespace cv;
@@ -22,35 +15,47 @@ int main(int, char**)
         cout << "camera failed" << endl;
         return -1;
     }
-
+    
+    cout << "Group 2 Blob Statistics" << endl;
 
     Mat video;
     namedWindow("video", 1);
     for (;;)
     {
         Mat frame;
+        //vector<Vec4i> hierarchy;
         cap >> frame; // get a new frame from camera
         flip(frame, frame, 1);
-        cvtColor(frame, video, COLOR_RGB2HSV);				//convert to hsv
+        cvtColor(frame, video, COLOR_BGR2HSV);				//convert to hsv (opencv stores image in bgr not rgb)
         GaussianBlur(video, video, Size(7, 7), 1.5, 1.5);		//smooth out the image, might be unnecessary becasue webcam quality is ok
 
         //Mat video1, video2;
-        inRange(video, Scalar(30, 100, 100), Scalar(60, 180, 150), video);  //adjusted for green woolie's bag in dark bedroom with lamp
+        inRange(video, Scalar(80, 90, 90), Scalar(100, 240, 240), video);  //adjusted for blue
 
         // These lines are needed if looking for red colour as the 'H' value wraps around
-        //inRange(video, Scalar(170, 70, 50), Scalar(180, 255, 255), video2);  //adjust for...
+        //inRange(video, Scalar(170, 150, 150), Scalar(180, 230, 230), video2);  //adjust for...
         //Mat video = video1 | video2;
         
-        morphologyEx(video, video, MORPH_OPEN, 11);			//adjust morph technique for best results	
-        
-        Moments m = moments(video, true);					//find centroid of cone
-        Point p(m.m10 / m.m00, m.m01 / m.m00);
+            //Clean up image
+            //erode(video, video, 3);
+            //dilate(video, video, 3);
+            morphologyEx(video, video, MORPH_OPEN, 11);			//adjust morph technique for best results	
+            morphologyEx(video, video, MORPH_CLOSE, 11);			//adjust morph technique for best results	
+             
+        Canny(video, video, 300, 3);        
+        //findContours(video, video, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 
-        circle(video, p, 5, Scalar(128, 0, 0), -1);
-        
+        //Finding Centroid
+        Moments m = moments(video, true);					
+        Point p(m.m10 / m.m00, m.m01 / m.m00);
+        drawMarker(video, p, Scalar(128, 0, 0), MARKER_CROSS, 20, 1, 8);
+
+
+ 
+        cout << "Centroid (x,y) = \t(" << m.m10 / m.m00 << ", " << m.m01 / m.m00 << ")" << endl;
         imshow("video", video);
         if (waitKey(16) >= 0) {
-            cout << "inside waitkey" << endl;
+            //cout << "inside waitkey" << endl;     //for debugging purposes
             break;
         }
     }
