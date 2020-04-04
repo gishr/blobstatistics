@@ -49,14 +49,14 @@ int main()
 
     int height = frame->height;
     int width = frame->width;
-    int m00 = 0;                   //m00
-    int m01 = 0;              //m01
-    int m10 = 0;              //m10
-    int centre_x = 0;
-    int centre_y = 0;
-    int m11 = 0;                    //m11 = m01 * m10
-    int m20 = 0;
-    int m02 = 0;
+    double m00 = 0;                   //m00
+    double m01 = 0;              //m01
+    double m10 = 0;              //m10
+    double centre_x = 0;
+    double centre_y = 0;
+    double m11 = 0;                    //m11 = m01 * m10
+    double m20 = 0;
+    double m02 = 0;
     double mmoi = 0;                   //minimum moment of inertia
 
     do {
@@ -96,8 +96,8 @@ int main()
                     m01 = m01 + x;
                     m10 = m10 + y;
                     m11 = m01 * m10;
-                    m20 = m01 ^ 2;
-                    m02 = m10 ^ 2;
+                    m20 = m01 * m01;
+                    m02 = m10 * m10;
 
                 }
 
@@ -114,7 +114,7 @@ int main()
             centre_x = m01 / m00;
             centre_y = m10 / m00;
 
-            mmoi = 0.5 * atan((2*(m00*m11 - m10*m01)/((m00*m20-m10^2)-(m00*m02-m01^2)))) * 180 / pi;
+            mmoi = 0.5 * atan((2*(m00*m11 - m10*m01)/((m00*m20-(m10*m10))-(m00*m02-(m01*m01))))) * 180 / pi;
 
             //Output lines
             cout << "m00 (units)= \t" << m00;
