@@ -58,6 +58,8 @@ int main()
     double m20 = 0;
     double m02 = 0;
     double mmoi = 0;                   //minimum moment of inertia
+    double num = 0;
+    double den = 0;
 
     do {
         // Grabs and returns a frame from camera
@@ -114,11 +116,33 @@ int main()
             centre_x = m01 / m00;
             centre_y = m10 / m00;
 
-            mmoi = 0.5 * atan((2*(m00*m11 - m10*m01)/((m00*m20-(m10*m10))-(m00*m02-(m01*m01))))) * 180 / pi;
+            num = (2 * (m00 * m11 - m10 * m01));
+            den = (m00 * m20 - (m10 * m10)) - (m00 * m02 - (m01 * m01));
+            mmoi = 0.5 * atan(num / den) * 180 / pi;
+            
+            if (num >= 0) {
+                if (den >= 0) {
+                    cout << "Q1" << endl;           //  +/+
+                }
+                else {
+                    mmoi = 180 + mmoi ;
+                    cout << "Q2" << endl;           //  +/-
+                }
+            }
+            else {
+                if (den >= 0) {
+                    cout << "Q3" << endl;           //  -/+
+                }
+                else {
+                    mmoi = 180 + mmoi;
+                    cout << "Q4" << endl;           //  -/-
+                }
+            }
+            
 
             //Output lines
-            cout << "m00 (units)= \t" << m00;
-            cout << "\tCentre of m00 (x,y)= \t(" << centre_x << ", " << centre_y << ")";
+            cout << "m00 = \t" << m00;
+            cout << "\tCentre of area = \t" << centre_x << ", " << centre_y;
             cout << "\tMinimum Moment of Inertia = \t" << mmoi << endl;
         }
         
