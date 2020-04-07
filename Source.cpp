@@ -93,7 +93,7 @@ int main()
                 
                                                                                     
                 // Thresholding
-                if (gray > 250) {                       //set light values to 255
+                if (gray < 70) {                       //set light values to 255
                     row[x * 3] = 255;      
                     row[x * 3 + 1] = 255;
                     row[x * 3 + 2] = 255;
