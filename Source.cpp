@@ -64,6 +64,8 @@ int main()
     double rad = 0;
     double x2 = 0;
     double y2 = 0;
+    double x3 = 0;
+    double y3 = 0;
 
     do {
         // Grabs and returns a frame from camera
@@ -72,11 +74,13 @@ int main()
             break;
         }
 
-        //reset values here
+        //reset values here for each image
         m00 = 0;       
         m01 = 0;  
         m10 = 0;  
         m11 = 0;
+        m20 = 0;
+        m02 = 0;
         mmoi = 0;
         
         //stepping through the pixels
@@ -93,69 +97,76 @@ int main()
                 
                                                                                     
                 // Thresholding
-                if (gray < 70) {                       //set light values to 255
-                    row[x * 3] = 255;      
-                    row[x * 3 + 1] = 255;
-                    row[x * 3 + 2] = 255;
+                if (gray < 70) {                       //set dark values to 0
+                    row[x * 3] = 0;      
+                    row[x * 3 + 1] = 0;
+                    row[x * 3 + 2] = 0;
                     
                     m00++;                              //increment area
                     m01 = m01 + x;                      
                     m10 = m10 + y;
-                    m11 = m01 * m10;
-                    m20 = m01 * m01;
-                    m02 = m10 * m10;
-
+                    m11 = m11 + (double) (x) * double (y);
+                    m20 = m20 + (double) (y) * double (y);
+                    m02 = m02 + (double) (x) * double (x);
+                    //cout << (double)(x) * double(x) << endl;
                 }
 
-                else {                                  //set dark values to 0
-                    row[x * 3] = 0;
-                    row[x * 3 + 1] = 0;
-                    row[x * 3 + 2] = 0;
+                else {                                  //set light values to 255
+                    row[x * 3] = 255;
+                    row[x * 3 + 1] = 255;
+                    row[x * 3 + 2] = 255;
                 }
 
             }
         }
+        //cout << m11 << "\t" << m20 << "\t" << m02 << endl;
 
         if (m00 != 0) {
             centre_x = m01 / m00;                       //centroid in x
             centre_y = m10 / m00;                       //centroid in y
 
-            num = (2 * (m00 * m11 - m10 * m01));                                //numerator
+            num = 2.0 * (m00 * m11 - m10 * m01);                                //numerator
             den = (m00 * m20 - (m10 * m10)) - (m00 * m02 - (m01 * m01));        //denominator
-            mmoi = 0.5 * atan(num / den) * 180 / CV_PI;                         //mmoi equation
-            
-            if (num >= 0) {
-                if (den >= 0) {
-                    //cout << "Q1" << endl;           //  +/+
-                }
-                else {
-                    mmoi = 180 + mmoi ;
-                    //cout << "Q2" << endl;           //  +/-
-                }
-            }
-            else {
-                if (den >= 0) {
-                    //cout << "Q3" << endl;           //  -/+
-                }
-                else {
-                    mmoi = 180 + mmoi;
-                    //cout << "Q4" << endl;           //  -/-
-                }
-            }
+
+            mmoi = -0.5 * atan2(num, den) * 180.0 / CV_PI + 90;                        //mmoi equation
+
+            //if (num >= 0) {
+            //    if (den >= 0) {
+            //        //cout << "Q1" << endl;           //  +/+
+            //    }
+            //    else {
+            //        mmoi = 180.0 - mmoi ;
+            //        //cout << "Q2" << endl;           //  +/-
+            //    }
+            //}
+            //else {
+            //    if (den >= 0) {
+            //        mmoi = -mmoi;
+            //        //cout << "Q3" << endl;           //  -/+
+            //    }
+            //    else {
+            //        mmoi = 180.0 + mmoi;
+            //        //cout << "Q4" << endl;           //  -/-
+            //    }
+            //}
+
             //Drawing Markers
-            rad = mmoi * CV_PI / 180;        
-            x2 = centre_x + cos(rad) * 100;
-            y2 = centre_y + sin(rad) * 100;
+            rad = mmoi * CV_PI / 180.0;        
+            x2 = centre_x + cos(rad) * 200;
+            x3 = centre_x - cos(rad) * 200;
+            y2 = centre_y + sin(rad) * 200;
+            y3 = centre_y - sin(rad) * 200;
 
             cvLine(frame, cvPoint(centre_x, 0), cvPoint(centre_x, 480), CV_RGB(255, 0, 0), 1, 8, 0);                //Vertical
             cvLine(frame, cvPoint(0, centre_y), cvPoint(640, centre_y), CV_RGB(255, 0, 0), 1, 8, 0);                //Horizontal
-            cvLine(frame, cvPoint(centre_x, centre_y), cvPoint(int(x2), int(y2)), CV_RGB(0, 255, 0), 1, 8, 0);      // Orientation
+            cvLine(frame, cvPoint(int(x3),int(y3)), cvPoint(int(x2), int(y2)), CV_RGB(0, 255, 0), 1, 8, 0);                     //Orientation
 
             //Output lines
-            cout << "m00 = \t" << m00;
-            cout << "\tCentre of area =  " << centre_x << ", " << centre_y;
-            cout << "\tMinimum Moment of Inertia = \t" << mmoi << endl;
-
+            cout << "Area = " << m00;
+            cout << "  Centre =  " << centre_x << ", " << centre_y;
+            cout << "  Theta = " << 180.0 - mmoi << endl;
+            //cout << num/den << "\t" << num << "\t" << den << endl;
+            //cout << "\t" << m01 << "\t" << m10 << "\t" << m20 << "\t" << m02 << endl;
             
         }
         
